@@ -41,10 +41,12 @@
 //! Reading zero bits is a no-op.
 //!
 //! You can also skip over a number of bits, in which case there is no arbitrary small limits like
-//! when reading the values to a variable. However, you can not read past the end of the slice.
+//! when reading the values to a variable. However, you can not seek past the end of the slice,
+//! either when reading or when skipping bits.
 //!
 //! Note that the code will likely not work correctly if the slice is longer than 2^61 bytes, but
-//! exceeding that should be pretty unlikely.
+//! exceeding that should be pretty unlikely. Let's get back to this when people read exabytes of
+//! information one bit at a time.
 
 use std::fmt;
 use std::error::Error;
