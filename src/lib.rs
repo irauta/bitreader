@@ -12,10 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! BitReader is a helper type to extract strings of bits from a slice of bytes.
+//!
+//! Here is how you read first a single bit, then three bits and finally four bits from a byte
+//! buffer:
+//!
+//! ```
+//! use bitreader::BitReader;
+//!
+//! let slice_of_u8 = &[0b1000_1111];
+//! let mut reader = BitReader::new(slice_of_u8);
+//!
+//! // You probably should use try! or some other error handling mechanism in real code if the
+//! // length of the input is not known in advance.
+//! let a_single_bit = reader.read_u8(1).unwrap(); // 1
+//! let more_bits = reader.read_u8(3).unwrap(); // 0
+//! let last_bits_of_byte = reader.read_u8(4).unwrap(); // 0b1111
+//! ```
+//! You can naturally read bits from longer buffer of data than just a single byte.
+//!
+//! As you read bits, the internal cursor of BitReader moves on along the stream of bits. Little
+//! endian format is assumed when reading the multi-byte values. BitReader supports reading maximum
+//! of 64 bits at a time (with read_u64). Reading signed values directly is not supported at the
+//! moment.
+//!
+//! The reads do not need to be aligned in any particular way.
+//!
+//! Reading zero bits is a no-op.
+//!
+//! You can also skip over a number of bits, in which case there is no arbitrary small limits like
+//! when reading the values to a variable. However, you can not read past the end of the slice.
+//!
+//! Note that the code will likely not work correctly if the slice is longer than 2^61 bytes, but
+//! exceeding that should be pretty unlikely.
+
 use std::fmt;
 use std::error::Error;
 use std::result;
 
+/// BitReader reads data from a byte slice at the granularity of a single bit.
 pub struct BitReader<'a> {
     bytes: &'a [u8],
     /// Position from the start of the slice, counted as bits instead of bytes
@@ -23,6 +58,8 @@ pub struct BitReader<'a> {
 }
 
 impl<'a> BitReader<'a> {
+    /// Construct a new BitReader from a byte slice. The returned reader lives at most as long as
+    /// the slice given to is valid.
     pub fn new(bytes: &'a [u8]) -> BitReader<'a> {
         BitReader {
             bytes: bytes,
@@ -30,26 +67,31 @@ impl<'a> BitReader<'a> {
         }
     }
 
+    /// Read at most 8 bits into a u8.
     pub fn read_u8(&mut self, bit_count: u8) -> Result<u8> {
         let value = try!(self.read_value(bit_count, 8));
         Ok((value & 0xff) as u8)
     }
 
+    /// Read at most 16 bits into a u16.
     pub fn read_u16(&mut self, bit_count: u8) -> Result<u16> {
         let value = try!(self.read_value(bit_count, 16));
         Ok((value & 0xffff) as u16)
     }
 
+    /// Read at most 32 bits into a u32.
     pub fn read_u32(&mut self, bit_count: u8) -> Result<u32> {
         let value = try!(self.read_value(bit_count, 32));
         Ok((value & 0xffffffff) as u32)
     }
 
+    /// Read at most 64 bits into a u64.
     pub fn read_u64(&mut self, bit_count: u8) -> Result<u64> {
         let value = try!(self.read_value(bit_count, 64));
         Ok(value)
     }
 
+    /// Skip arbitrary number of bits. However, you can skip at most to the end of the byte slice.
     pub fn skip(&mut self, bit_count: u32) -> Result<()> {
         let end_position = self.position + bit_count as u64;
         if end_position > self.bytes.len() as u64 * 8 {
@@ -87,11 +129,16 @@ impl<'a> BitReader<'a> {
     }
 }
 
+/// Result type for those BitReader operations that can fail.
 pub type Result<T> = result::Result<T, BitReaderError>;
 
+/// Error enumeration of BitReader errors.
 #[derive(Debug,PartialEq)]
 pub enum BitReaderError {
+    /// Requested more bits than there are left in the byte slice at the current position.
     NotEnoughData,
+    /// Requested more bits than the returned variable can hold, for example more than 8 bits when
+    /// reading into a u8.
     TooManyBitsForType
 }
 
