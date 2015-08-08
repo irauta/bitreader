@@ -112,12 +112,12 @@ impl fmt::Display for BitReaderError {
 
 #[test]
 fn read_buffer() {
-    let bytes = [
+    let bytes = &[
         0b1011_0101, 0b0110_1010, 0b1010_1100, 0b1001_1001,
         0b1001_1001, 0b1001_1001, 0b1001_1001, 0b1110_0111,
     ];
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
 
     assert_eq!(reader.read_u8(1).unwrap(), 0b1);
     assert_eq!(reader.read_u8(1).unwrap(), 0b0);
@@ -138,22 +138,22 @@ fn read_buffer() {
 
 #[test]
 fn try_all_sizes() {
-    let bytes = [
+    let bytes = &[
         0x4a, 0x1e, 0x39, 0xbb, 0xd0, 0x07, 0xca, 0x9a,
         0xa6, 0xba, 0x25, 0x52, 0x6f, 0x0a, 0x6a, 0xba,
     ];
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u64(64).unwrap(), 0x4a1e39bbd007ca9a);
     assert_eq!(reader.read_u64(64).unwrap(), 0xa6ba25526f0a6aba);
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u32(32).unwrap(), 0x4a1e39bb);
     assert_eq!(reader.read_u32(32).unwrap(), 0xd007ca9a);
     assert_eq!(reader.read_u32(32).unwrap(), 0xa6ba2552);
     assert_eq!(reader.read_u32(32).unwrap(), 0x6f0a6aba);
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u16(16).unwrap(), 0x4a1e);
     assert_eq!(reader.read_u16(16).unwrap(), 0x39bb);
     assert_eq!(reader.read_u16(16).unwrap(), 0xd007);
@@ -164,18 +164,18 @@ fn try_all_sizes() {
     assert_eq!(reader.read_u16(16).unwrap(), 0x6aba);
 
     let mut reader = BitReader::new(&bytes[..]);
-    for byte in &bytes[..] {
+    for byte in bytes {
         assert_eq!(reader.read_u8(8).unwrap(), *byte);
     }
 }
 
 #[test]
 fn skipping_and_zero_reads() {
-    let bytes = [
+    let bytes = &[
         0b1011_0101, 0b1110_1010, 0b1010_1100,
     ];
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
 
     assert_eq!(reader.read_u8(4).unwrap(), 0b1011);
     // Reading zero bits should be a no-op
@@ -188,17 +188,17 @@ fn skipping_and_zero_reads() {
 
 #[test]
 fn errors() {
-    let bytes = [
+    let bytes = &[
         0b1011_0101, 0b1110_1010, 0b1010_1100,
     ];
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u8(4).unwrap(), 0b1011);
     assert_eq!(reader.read_u8(9).unwrap_err(), BitReaderError::TooManyBitsForType);
     // If an error happens, it should be possible to resume as if nothing had happened
     assert_eq!(reader.read_u8(4).unwrap(), 0b0101);
 
-    let mut reader = BitReader::new(&bytes[..]);
+    let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u8(4).unwrap(), 0b1011);
     // Same with this error
     assert_eq!(reader.read_u32(21).unwrap_err(), BitReaderError::NotEnoughData);
