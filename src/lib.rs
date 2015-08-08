@@ -103,6 +103,20 @@ impl<'a> BitReader<'a> {
         Ok(())
     }
 
+    /// Helper to make sure the "bit cursor" is exactly at the beginning of a byte, or at specific
+    /// multi-byte alignment position.
+    ///
+    /// For example `reader.is_aligned(1)` returns true if exactly n bytes, or n * 8 bits, has been
+    /// read. Similarly, `reader.is_aligned(4)` returns true if exactly n * 32 bits, or n 4-byte
+    /// sequences has been read.
+    ///
+    /// This function can be used to validate the data is being read properly, for example by
+    /// adding invocations wrapped into `debug_assert!()` to places where it is known the data
+    /// should be n-byte aligned.
+    pub fn is_aligned(&self, alignment_bytes: u32) -> bool {
+        self.position % (alignment_bytes as u64 * 8) == 0
+    }
+
     fn read_value(&mut self, bit_count: u8, maximum_count: u8) -> Result<u64> {
         if bit_count == 0 {
             return Ok(0);
@@ -174,15 +188,22 @@ fn read_buffer() {
 
     assert_eq!(reader.read_u8(4).unwrap(), 0b0101);
 
+    assert!(reader.is_aligned(1));
+
     assert_eq!(reader.read_u8(3).unwrap(), 0b11);
     assert_eq!(reader.read_u16(10).unwrap(), 0b01_0101_0101);
     assert_eq!(reader.read_u8(3).unwrap(), 0b100);
+
+    assert!(reader.is_aligned(1));
 
     assert_eq!(reader.read_u32(32).unwrap(), 0b1001_1001_1001_1001_1001_1001_1001_1001);
 
     assert_eq!(reader.read_u8(4).unwrap(), 0b1110);
     assert_eq!(reader.read_u8(3).unwrap(), 0b011);
     assert_eq!(reader.read_u8(1).unwrap(), 0b1);
+
+    // Could also be 8 at this point!
+    assert!(reader.is_aligned(4));
 }
 
 #[test]
