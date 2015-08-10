@@ -103,6 +103,11 @@ impl<'a> BitReader<'a> {
         Ok(())
     }
 
+    /// Returns the position of the cursor, or how many bits have been read so far.
+    pub fn position(&self) -> u64 {
+        self.position
+    }
+
     /// Helper to make sure the "bit cursor" is exactly at the beginning of a byte, or at specific
     /// multi-byte alignment position.
     ///
