@@ -93,6 +93,34 @@ impl<'a> BitReader<'a> {
         Ok(value)
     }
 
+    /// Read at most 8 bits into a i8.
+    /// Assumes the bits are stored in two's complement format.
+    pub fn read_i8(&mut self, bit_count: u8) -> Result<i8> {
+        let value = try!(self.read_signed_value(bit_count, 8));
+        Ok((value & 0xff) as i8)
+    }
+
+    /// Read at most 16 bits into a i16.
+    /// Assumes the bits are stored in two's complement format.
+    pub fn read_i16(&mut self, bit_count: u8) -> Result<i16> {
+        let value = try!(self.read_signed_value(bit_count, 16));
+        Ok((value & 0xffff) as i16)
+    }
+
+    /// Read at most 32 bits into a i32.
+    /// Assumes the bits are stored in two's complement format.
+    pub fn read_i32(&mut self, bit_count: u8) -> Result<i32> {
+        let value = try!(self.read_signed_value(bit_count, 32));
+        Ok((value & 0xffffffff) as i32)
+    }
+
+    /// Read at most 64 bits into a i64.
+    /// Assumes the bits are stored in two's complement format.
+    pub fn read_i64(&mut self, bit_count: u8) -> Result<i64> {
+        let value = try!(self.read_signed_value(bit_count, 64));
+        Ok(value)
+    }
+
     /// Skip arbitrary number of bits. However, you can skip at most to the end of the byte slice.
     pub fn skip(&mut self, bit_count: u32) -> Result<()> {
         let end_position = self.position + bit_count as u64;
@@ -120,6 +148,15 @@ impl<'a> BitReader<'a> {
     /// should be n-byte aligned.
     pub fn is_aligned(&self, alignment_bytes: u32) -> bool {
         self.position % (alignment_bytes as u64 * 8) == 0
+    }
+
+    fn read_signed_value(&mut self, bit_count: u8, maximum_count: u8) -> Result<i64> {
+        let unsigned = try!(self.read_value(bit_count, maximum_count));
+        // Fill the bits above the requested bits with all ones or all zeros,
+        // depending on the sign bit.
+        let sign_bit = unsigned >> (bit_count - 1) & 1;
+        let high_bits = if sign_bit == 1 { -1 } else { 0 };
+        Ok(high_bits << bit_count | unsigned as i64)
     }
 
     fn read_value(&mut self, bit_count: u8, maximum_count: u8) -> Result<u64> {
@@ -278,4 +315,20 @@ fn errors() {
     // Same with this error
     assert_eq!(reader.read_u32(21).unwrap_err(), BitReaderError::NotEnoughData);
     assert_eq!(reader.read_u8(4).unwrap(), 0b0101);
+}
+
+#[test]
+fn signed_values() {
+    let from = -2048;
+    let to = 2048;
+    for x in from..to {
+        let bytes = &[
+            (x >> 8) as u8,
+            x as u8,
+        ];
+        let mut reader = BitReader::new(bytes);
+        reader.skip(4).unwrap();
+        let val = reader.read_i16(12).unwrap();
+        assert_eq!(val, x);
+    }
 }
