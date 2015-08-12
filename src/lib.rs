@@ -327,8 +327,7 @@ fn signed_values() {
             x as u8,
         ];
         let mut reader = BitReader::new(bytes);
-        reader.skip(4).unwrap();
-        let val = reader.read_i16(12).unwrap();
-        assert_eq!(val, x);
+        assert_eq!(reader.read_u8(4).unwrap(), if x < 0 { 0b1111 } else { 0 });
+        assert_eq!(reader.read_i16(12).unwrap(), x);
     }
 }
