@@ -223,7 +223,7 @@ impl fmt::Display for BitReaderError {
     }
 }
 
-/// Helper trait to allow reading bits into a variable with the help of type inference.
+/// Helper trait to allow reading bits into a variable without explicitly mentioning its type.
 ///
 /// If you can't or want, for some reason, to use BitReader's read methods (`read_u8` etc.) but
 /// want to rely on type inference instead, you can use the ReadInto trait. The trait is
@@ -239,7 +239,7 @@ impl fmt::Display for BitReaderError {
 ///     bar: u8
 /// }
 ///
-/// // No type mentioned here, instead the type of `bits` is inferred from the type of Foo::bar,
+/// // No type mentioned here, instead the type of bits is inferred from the type of Foo::bar,
 /// // and consequently the correct "overload" is used.
 /// let bits = ReadInto::read(&mut reader, 2).unwrap();
 ///
