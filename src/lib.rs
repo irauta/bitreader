@@ -25,9 +25,14 @@
 //!
 //! // You probably should use try! or some other error handling mechanism in real code if the
 //! // length of the input is not known in advance.
-//! let a_single_bit = reader.read_u8(1).unwrap(); // 1
-//! let more_bits = reader.read_u8(3).unwrap(); // 0
-//! let last_bits_of_byte = reader.read_u8(4).unwrap(); // 0b1111
+//! let a_single_bit = reader.read_u8(1).unwrap();
+//! assert_eq!(a_single_bit, 1);
+//!
+//! let more_bits = reader.read_u8(3).unwrap();
+//! assert_eq!(more_bits, 0);
+//!
+//! let last_bits_of_byte = reader.read_u8(4).unwrap();
+//! assert_eq!(last_bits_of_byte, 0b1111);
 //! ```
 //! You can naturally read bits from longer buffer of data than just a single byte.
 //!
