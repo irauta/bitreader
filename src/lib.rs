@@ -215,6 +215,55 @@ impl fmt::Display for BitReaderError {
     }
 }
 
+/// Helper trait to allow reading bits into a variable with the help of type inference.
+///
+/// If you can't or want, for some reason, to use BitReader's read methods (`read_u8` etc.) but
+/// want to rely on type inference instead, you can use the ReadInto trait. The trait is
+/// implemented for all basic integer types (8/16/32/64 bits, signed/unsigned).
+///
+/// ```
+/// use bitreader::{BitReader,ReadInto};
+///
+/// let slice_of_u8 = &[0b1100_0000];
+/// let mut reader = BitReader::new(slice_of_u8);
+///
+/// struct Foo {
+///     bar: u8
+/// }
+///
+/// // No type mentioned here, instead the type of `bits` is inferred from the type of Foo::bar,
+/// // and consequently the correct "overload" is used.
+/// let bits = ReadInto::read(&mut reader, 2).unwrap();
+///
+/// let foo = Foo { bar: bits };
+/// assert_eq!(foo.bar, 3)
+/// ```
+pub trait ReadInto {
+    fn read(reader: &mut BitReader, bits: u8) -> Result<Self>;
+}
+
+// There's eight almost identical implementations, let's make this easier.
+macro_rules! impl_read_into {
+    ($T:ty, $method:ident) => (
+        impl ReadInto for $T {
+            fn read(reader: &mut BitReader, bits: u8) -> Result<Self> {
+                reader.$method(bits)
+            }
+        }
+    )
+}
+
+impl_read_into!(u8, read_u8);
+impl_read_into!(u16, read_u16);
+impl_read_into!(u32, read_u32);
+impl_read_into!(u64, read_u64);
+
+impl_read_into!(i8, read_i8);
+impl_read_into!(i16, read_i16);
+impl_read_into!(i32, read_i32);
+impl_read_into!(i64, read_i64);
+
+
 #[test]
 fn read_buffer() {
     let bytes = &[
