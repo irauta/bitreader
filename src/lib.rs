@@ -191,7 +191,7 @@ impl<'a> BitReader<'a> {
 pub type Result<T> = result::Result<T, BitReaderError>;
 
 /// Error enumeration of BitReader errors.
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Copy,Clone)]
 pub enum BitReaderError {
     /// Requested more bits than there are left in the byte slice at the current position.
     NotEnoughData,
