@@ -65,6 +65,7 @@ pub struct BitReader<'a> {
     bytes: &'a [u8],
     /// Position from the start of the slice, counted as bits instead of bytes
     position: u64,
+    relative_offset: u64,
 }
 
 impl<'a> BitReader<'a> {
@@ -73,7 +74,38 @@ impl<'a> BitReader<'a> {
     pub fn new(bytes: &'a [u8]) -> BitReader<'a> {
         BitReader {
             bytes: bytes,
-            position: 0
+            position: 0,
+            relative_offset: 0,
+        }
+    }
+
+    /// Returns a copy of current BitReader, with the difference that its position() returns
+    /// positions relative to the position of the original BitReader at the construction time.
+    /// After construction, both readers are otherwise completely independent, except of course
+    /// for sharing the same source data.
+    ///
+    /// ```
+    /// use bitreader::BitReader;
+    ///
+    /// let bytes = &[0b11110000, 0b00001111];
+    /// let mut original = BitReader::new(bytes);
+    /// assert_eq!(original.read_u8(4).unwrap(), 0b1111);
+    /// assert_eq!(original.position(), 4);
+    ///
+    /// let mut relative = original.relative_reader();
+    /// assert_eq!(relative.position(), 0);
+    ///
+    /// assert_eq!(original.read_u8(8).unwrap(), 0);
+    /// assert_eq!(relative.read_u8(8).unwrap(), 0);
+    ///
+    /// assert_eq!(original.position(), 12);
+    /// assert_eq!(relative.position(), 8);
+    /// ```
+    pub fn relative_reader(&self) -> BitReader<'a> {
+        BitReader {
+            bytes: self.bytes,
+            position: self.position,
+            relative_offset: self.position,
         }
     }
 
@@ -141,7 +173,7 @@ impl<'a> BitReader<'a> {
 
     /// Returns the position of the cursor, or how many bits have been read so far.
     pub fn position(&self) -> u64 {
-        self.position
+        self.position - self.relative_offset
     }
 
     /// Helper to make sure the "bit cursor" is exactly at the beginning of a byte, or at specific
