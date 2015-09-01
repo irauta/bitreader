@@ -105,14 +105,22 @@ fn errors() {
 
     let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u8(4).unwrap(), 0b1011);
-    assert_eq!(reader.read_u8(9).unwrap_err(), BitReaderError::TooManyBitsForType);
+    assert_eq!(reader.read_u8(9).unwrap_err(), BitReaderError::TooManyBitsForType {
+        position: 4,
+        requested: 9,
+        allowed: 8
+    });
     // If an error happens, it should be possible to resume as if nothing had happened
     assert_eq!(reader.read_u8(4).unwrap(), 0b0101);
 
     let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_u8(4).unwrap(), 0b1011);
     // Same with this error
-    assert_eq!(reader.read_u32(21).unwrap_err(), BitReaderError::NotEnoughData);
+    assert_eq!(reader.read_u32(21).unwrap_err(), BitReaderError::NotEnoughData {
+        position: 4,
+        length: (bytes.len() * 8) as u64,
+        requested: 21
+    });
     assert_eq!(reader.read_u8(4).unwrap(), 0b0101);
 }
 

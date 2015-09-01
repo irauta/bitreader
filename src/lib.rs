@@ -162,10 +162,14 @@ impl<'a> BitReader<'a> {
     }
 
     /// Skip arbitrary number of bits. However, you can skip at most to the end of the byte slice.
-    pub fn skip(&mut self, bit_count: u32) -> Result<()> {
-        let end_position = self.position + bit_count as u64;
+    pub fn skip(&mut self, bit_count: u64) -> Result<()> {
+        let end_position = self.position + bit_count;
         if end_position > self.bytes.len() as u64 * 8 {
-            return Err(BitReaderError::NotEnoughData);
+            return Err(BitReaderError::NotEnoughData {
+                position: self.position,
+                length: (self.bytes.len() * 8) as u64,
+                requested: bit_count,
+            });
         }
         self.position = end_position;
         Ok(())
@@ -204,12 +208,20 @@ impl<'a> BitReader<'a> {
             return Ok(0);
         }
         if bit_count > maximum_count {
-            return Err(BitReaderError::TooManyBitsForType);
+            return Err(BitReaderError::TooManyBitsForType {
+                position: self.position,
+                requested: bit_count,
+                allowed: maximum_count,
+            });
         }
         let start_position = self.position;
         let end_position = self.position + bit_count as u64;
         if end_position > self.bytes.len() as u64 * 8 {
-            return Err(BitReaderError::NotEnoughData);
+            return Err(BitReaderError::NotEnoughData {
+                position: self.position,
+                length: (self.bytes.len() * 8) as u64,
+                requested: bit_count as u64,
+            });
         }
 
         let mut value: u64 = 0;
@@ -234,24 +246,36 @@ pub type Result<T> = result::Result<T, BitReaderError>;
 #[derive(Debug,PartialEq,Copy,Clone)]
 pub enum BitReaderError {
     /// Requested more bits than there are left in the byte slice at the current position.
-    NotEnoughData,
+    NotEnoughData {
+        position: u64,
+        length: u64,
+        requested: u64,
+    },
     /// Requested more bits than the returned variable can hold, for example more than 8 bits when
     /// reading into a u8.
-    TooManyBitsForType
+    TooManyBitsForType {
+        position: u64,
+        requested: u8,
+        allowed: u8,
+    }
 }
 
 impl Error for BitReaderError {
     fn description(&self) -> &str {
         match *self {
-            BitReaderError::NotEnoughData => "Requested more bits than the byte slice has left",
-            BitReaderError::TooManyBitsForType => "Requested more bits than the requested integer type can hold",
+            BitReaderError::NotEnoughData {..} => "Requested more bits than the byte slice has left",
+            BitReaderError::TooManyBitsForType {..} => "Requested more bits than the requested integer type can hold",
         }
     }
 }
 
 impl fmt::Display for BitReaderError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        self.description().fmt(fmt)
+        //self.description().fmt(fmt)
+        match *self {
+            BitReaderError::NotEnoughData { position, length, requested } => write!(fmt, "BitReader: Requested {} bits with only {}/{} bits left (position {})", requested, length - position, length, position),
+            BitReaderError::TooManyBitsForType { position, requested, allowed } => write!(fmt, "BitReader: Requested {} bits while the type can only hold {} (position {})", requested, allowed, position),
+        }
     }
 }
 
