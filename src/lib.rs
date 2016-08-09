@@ -302,7 +302,9 @@ impl fmt::Display for BitReaderError {
 /// let foo = Foo { bar: bits };
 /// assert_eq!(foo.bar, 3)
 /// ```
-pub trait ReadInto {
+pub trait ReadInto
+    where Self: Sized
+{
     fn read(reader: &mut BitReader, bits: u8) -> Result<Self>;
 }
 
