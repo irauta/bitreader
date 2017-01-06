@@ -164,7 +164,7 @@ impl<'a> BitReader<'a> {
     /// Read a single bit as a boolean value.
     /// Interprets 1 as true and 0 as false.
     pub fn read_bool(&mut self) -> Result<bool> {
-        match try!(self.read_value(1, 8)) {
+        match try!(self.read_value(1, 1)) {
             0 => Ok(false),
             _ => Ok(true),
         }
