@@ -2,6 +2,8 @@
 
 BitReader is a helper type to extract strings of bits from a slice of bytes.
 
+[![Build Status](https://travis-ci.org/irauta/bitreader.svg)](https://travis-ci.org/irauta/bitreader)
+
 Here is how you read first a single bit, then three bits and finally four bits from a byte buffer:
 
     use bitreader::BitReader;
