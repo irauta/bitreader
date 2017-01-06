@@ -161,6 +161,15 @@ impl<'a> BitReader<'a> {
         Ok(value)
     }
 
+    /// Read a single bit as a boolean value.
+    /// Interprets 1 as true and 0 as false.
+    pub fn read_bool(&mut self) -> Result<bool> {
+        match try!(self.read_value(1, 8)) {
+            0 => Ok(false),
+            _ => Ok(true),
+        }
+    }
+
     /// Skip arbitrary number of bits. However, you can skip at most to the end of the byte slice.
     pub fn skip(&mut self, bit_count: u64) -> Result<()> {
         let end_position = self.position + bit_count;
