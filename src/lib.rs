@@ -283,24 +283,28 @@ impl fmt::Display for BitReaderError {
 ///
 /// If you can't or want, for some reason, to use BitReader's read methods (`read_u8` etc.) but
 /// want to rely on type inference instead, you can use the ReadInto trait. The trait is
-/// implemented for all basic integer types (8/16/32/64 bits, signed/unsigned).
+/// implemented for all basic integer types (8/16/32/64 bits, signed/unsigned)
+/// and the boolean type.
 ///
 /// ```
 /// use bitreader::{BitReader,ReadInto};
 ///
-/// let slice_of_u8 = &[0b1100_0000];
+/// let slice_of_u8 = &[0b1110_0000];
 /// let mut reader = BitReader::new(slice_of_u8);
 ///
 /// struct Foo {
-///     bar: u8
+///     bar: u8,
+///     valid: bool,
 /// }
 ///
 /// // No type mentioned here, instead the type of bits is inferred from the type of Foo::bar,
 /// // and consequently the correct "overload" is used.
 /// let bits = ReadInto::read(&mut reader, 2).unwrap();
+/// let valid = ReadInto::read(&mut reader, 1).unwrap();
 ///
-/// let foo = Foo { bar: bits };
-/// assert_eq!(foo.bar, 3)
+/// let foo = Foo { bar: bits, valid: valid };
+/// assert_eq!(foo.bar, 3);
+/// assert!(foo.valid);
 /// ```
 pub trait ReadInto
     where Self: Sized
@@ -328,3 +332,13 @@ impl_read_into!(i8, read_i8);
 impl_read_into!(i16, read_i16);
 impl_read_into!(i32, read_i32);
 impl_read_into!(i64, read_i64);
+
+// We can't cast to bool, so this requires a separate method.
+impl ReadInto for bool {
+    fn read(reader: &mut BitReader, bits: u8) -> Result<Self> {
+        match try!(reader.read_u8(bits)) {
+            0 => Ok(false),
+            _ => Ok(true),
+        }
+    }
+}
