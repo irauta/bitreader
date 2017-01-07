@@ -4,7 +4,7 @@ BitReader is a helper type to extract strings of bits from a slice of bytes.
 
 [![Published Package](https://img.shields.io/crates/v/bitreader.svg)](https://crates.io/crates/bitreader)
 [![Documentation](https://docs.rs/bitreader/badge.svg)](https://docs.rs/bitreader)
-[![Build Status](https://travis-ci.org/irauta/bitreader.svg)](https://travis-ci.org/irauta/bitreader)
+[![Build Status](https://travis-ci.org/irauta/bitreader.svg?branch=master)](https://travis-ci.org/irauta/bitreader)
 
 Here is how you read first a single bit, then three bits and finally four bits from a byte buffer:
 
