@@ -30,7 +30,7 @@
 //! ```
 //! You can naturally read bits from longer buffer of data than just a single byte.
 //!
-//! As you read bits, the internal cursor of BitReader moves on along the stream of bits. Little
+//! As you read bits, the internal cursor of BitReader moves on along the stream of bits. Big
 //! endian format is assumed when reading the multi-byte values. BitReader supports reading maximum
 //! of 64 bits at a time (with read_u64). Reading signed values directly is not supported at the
 //! moment.
