@@ -109,6 +109,23 @@ impl<'a> BitReader<'a> {
         Ok((value & 0xff) as u8)
     }
 
+    /// Fills the `output_bytes` slice with bits from the underlying byte slice.
+    pub fn read_u8_slice(&mut self, output_bytes: &mut [u8]) -> Result<()> {
+        let requested = output_bytes.len() as u64 * 8;
+        if requested > self.remaining() {
+            Err(BitReaderError::NotEnoughData {
+                position: self.position,
+                length: (self.bytes.len() * 8) as u64,
+                requested: requested,
+            })
+        } else {
+            for byte in output_bytes.iter_mut() {
+                *byte = try!(self.read_u8(8));
+            }
+            Ok(())
+        }
+    }
+
     /// Read at most 16 bits into a u16.
     pub fn read_u16(&mut self, bit_count: u8) -> Result<u16> {
         let value = try!(self.read_value(bit_count, 16));
@@ -181,6 +198,12 @@ impl<'a> BitReader<'a> {
     /// Returns the position of the cursor, or how many bits have been read so far.
     pub fn position(&self) -> u64 {
         self.position - self.relative_offset
+    }
+
+    /// Returns the number of bits not yet read from the underlying slice.
+    pub fn remaining(&self) -> u64 {
+        let total_bits = self.bytes.len() as u64 * 8;
+        total_bits - self.position
     }
 
     /// Helper to make sure the "bit cursor" is exactly at the beginning of a byte, or at specific
