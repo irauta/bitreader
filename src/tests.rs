@@ -187,3 +187,21 @@ fn read_slice() {
 
     assert_eq!(reader.read_u8(2).unwrap(), 0);
 }
+
+#[test]
+fn read_slice_too_much() {
+    let bytes = &[
+        0b1111_1111, 0b1111_1111, 0b1111_1111, 0b1111_1111,
+    ];
+    let mut reader = BitReader::new(bytes);
+    assert_eq!(reader.read_u8(1).unwrap(), 1);
+
+    let mut output = [0u8; 4];
+    let should_be_error = reader.read_u8_slice(&mut output);
+    assert_eq!(should_be_error.unwrap_err(), BitReaderError::NotEnoughData {
+        position: 1,
+        length: (bytes.len() * 8) as u64,
+        requested: (&output.len() * 8) as u64
+    });
+    assert_eq!(&output, &[0u8; 4]);
+}
