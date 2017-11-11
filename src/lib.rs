@@ -109,9 +109,9 @@ impl<'a> BitReader<'a> {
         Ok((value & 0xff) as u8)
     }
 
-    /// Fills the `output_bytes` slice with bits from the underlying byte slice.
-    /// The slice will not be modified and the cursor moved if there's not enough
-    /// bits remaining after the internal cursor's current position.
+    /// Fills the entire `output_bytes` slice. If there aren't enough bits remaining
+    /// after the internal cursor's current position, the cursor won't be moved forward
+    /// and the contents of `output_bytes` won't be modified.
     pub fn read_u8_slice(&mut self, output_bytes: &mut [u8]) -> Result<()> {
         let requested = output_bytes.len() as u64 * 8;
         if requested > self.remaining() {
