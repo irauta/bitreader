@@ -17,3 +17,11 @@ repository = "https://github.com/irauta/bitreader"
 keywords = ["bit", "bits", "bitstream"]
 
 license = "MIT OR Apache-2.0"
+
+[dependencies]
+cfg-if = "0.1.9"
+
+[features]
+std = []
+
+default = ["std"]
