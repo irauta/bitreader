@@ -19,7 +19,7 @@ keywords = ["bit", "bits", "bitstream"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-cfg-if = "0.1.9"
+cfg-if = "1"
 
 [features]
 std = []
