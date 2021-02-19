@@ -231,6 +231,18 @@ impl<'a> BitReader<'a> {
         self.position % (alignment_bytes as u64 * 8) == 0
     }
 
+    /// Helper to move the "bit cursor" to exactly the beginning of a byte, or to a specific
+    /// multi-byte alignment position.
+    ///
+    /// That is, `reader.align(n)` moves the cursor to the next position that
+    /// is a multiple of n * 8 bits, if it's not correctly aligned already.
+    pub fn align(&mut self, alignment_bytes: u32) -> Result<()> {
+        let alignment_bits = alignment_bytes as u64 * 8;
+        let cur_alignment = self.position % alignment_bits;
+        let bits_to_skip = (alignment_bits - cur_alignment) % alignment_bits;
+        self.skip(bits_to_skip)
+    }
+
     fn read_signed_value(&mut self, bit_count: u8, maximum_count: u8) -> Result<i64> {
         let unsigned = self.read_value(bit_count, maximum_count)?;
         // Fill the bits above the requested bits with all ones or all zeros,
