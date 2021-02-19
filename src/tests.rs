@@ -18,6 +18,7 @@ fn read_buffer() {
     let mut reader = BitReader::new(bytes);
 
     assert_eq!(reader.read_u8(1).unwrap(), 0b1);
+    assert_eq!(reader.peek_u8(3).unwrap(), 0b011);
     assert_eq!(reader.read_u8(1).unwrap(), 0b0);
     assert_eq!(reader.read_u8(2).unwrap(), 0b11);
 
@@ -36,7 +37,13 @@ fn read_buffer() {
 
     assert_eq!(reader.align(1), Ok(())); // shouldn't do anything if already aligned
 
+    assert_eq!(reader.peek_u64(16).unwrap(), 0b110_1010_1010_1100);
     assert_eq!(reader.read_u8(3).unwrap(), 0b11);
+    assert_eq!(reader.peek_u16(13).unwrap(), 0b1010_1010_1100);
+    assert_eq!(reader.peek_u32(13).unwrap(), 0b1010_1010_1100);
+    assert_eq!(reader.peek_u64(13).unwrap(), 0b1010_1010_1100);
+    assert_eq!(reader.peek_u16(10).unwrap(), 0b01_0101_0101);
+    assert_eq!(reader.peek_u8(8).unwrap(), 0b0101_0101);
     assert_eq!(reader.read_u16(10).unwrap(), 0b01_0101_0101);
     assert_eq!(reader.read_u8(3).unwrap(), 0b100);
 
@@ -47,8 +54,11 @@ fn read_buffer() {
 
     assert_eq!(reader.read_u32(32).unwrap(), 0b1001_1001_1001_1001_1001_1001_1001_1001);
 
+    assert_eq!(reader.peek_bool().unwrap(), true);
     assert_eq!(reader.read_u8(4).unwrap(), 0b1110);
+    assert_eq!(reader.peek_bool().unwrap(), false);
     assert_eq!(reader.read_u8(3).unwrap(), 0b011);
+    assert_eq!(reader.peek_bool().unwrap(), true);
     assert_eq!(reader.read_bool().unwrap(), true);
 
     // Could also be 8 at this point!

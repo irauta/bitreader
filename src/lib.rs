@@ -118,6 +118,11 @@ impl<'a> BitReader<'a> {
         Ok((value & 0xff) as u8)
     }
 
+    /// Read at most 8 bits into a u8, but without moving the cursor forward.
+    pub fn peek_u8(&self, bit_count: u8) -> Result<u8> {
+        self.relative_reader().read_u8(bit_count)
+    }
+
     /// Fills the entire `output_bytes` slice. If there aren't enough bits remaining
     /// after the internal cursor's current position, the cursor won't be moved forward
     /// and the contents of `output_bytes` won't be modified.
@@ -143,16 +148,31 @@ impl<'a> BitReader<'a> {
         Ok((value & 0xffff) as u16)
     }
 
+    /// Read at most 16 bits into a u16, but without moving the cursor forward.
+    pub fn peek_u16(&self, bit_count: u8) -> Result<u16> {
+        self.relative_reader().read_u16(bit_count)
+    }
+
     /// Read at most 32 bits into a u32.
     pub fn read_u32(&mut self, bit_count: u8) -> Result<u32> {
         let value = self.read_value(bit_count, 32)?;
         Ok((value & 0xffffffff) as u32)
     }
 
+    /// Read at most 32 bits into a u32, but without moving the cursor forward.
+    pub fn peek_u32(&self, bit_count: u8) -> Result<u32> {
+        self.relative_reader().read_u32(bit_count)
+    }
+
     /// Read at most 64 bits into a u64.
     pub fn read_u64(&mut self, bit_count: u8) -> Result<u64> {
         let value = self.read_value(bit_count, 64)?;
         Ok(value)
+    }
+
+    /// Read at most 64 bits into a u64, but without moving the cursor forward.
+    pub fn peek_u64(&self, bit_count: u8) -> Result<u64> {
+        self.relative_reader().read_u64(bit_count)
     }
 
     /// Read at most 8 bits into a i8.
@@ -190,6 +210,12 @@ impl<'a> BitReader<'a> {
             0 => Ok(false),
             _ => Ok(true),
         }
+    }
+
+    /// Read a single bit as a boolean value, but without moving the cursor forward.
+    /// Interprets 1 as true and 0 as false.
+    pub fn peek_bool(&self) -> Result<bool> {
+        self.relative_reader().read_bool()
     }
 
     /// Skip arbitrary number of bits. However, you can skip at most to the end of the byte slice.
