@@ -1,6 +1,6 @@
 [package]
 name = "bitreader"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Ilkka Rauta <ilkka.rauta@gmail.com>"]
 
 description = """
