@@ -221,6 +221,7 @@ fn signed_values() {
     }
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn boolean_values() {
     let bytes: Vec<u8> = (0..16).collect();
