@@ -322,6 +322,10 @@ impl<'a> BitReader<'a> {
         // depending on the sign bit.
         let sign_bit = unsigned >> (bit_count - 1) & 1;
         let high_bits = if sign_bit == 1 { -1 } else { 0 };
+        if bit_count == 64 {
+            // Avoid left-shift-with-overflow exception
+            return Ok(unsigned as i64);
+        }
         Ok(high_bits << bit_count | unsigned as i64)
     }
 
