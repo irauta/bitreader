@@ -284,7 +284,7 @@ impl<'a> BitReader<'a> {
 
     /// Returns the number of bits not yet read from the underlying slice.
     pub fn remaining(&self) -> u64 {
-        self.length - self.position
+        self.length - self.position()
     }
 
     /// Helper to make sure the "bit cursor" is exactly at the beginning of a byte, or at specific

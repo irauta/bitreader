@@ -329,3 +329,13 @@ fn test_read_i64_max() {
     let mut reader = BitReader::new(bytes);
     assert_eq!(reader.read_i64(64).unwrap(), -1);
 }
+
+#[test]
+fn relative_reader_remaining() {
+    let bytes = &[0b0001_0010, 0b0011_0100];
+    let mut reader = BitReader::new(bytes);
+    reader.skip(2).unwrap();
+    let relative_reader = reader.relative_reader();
+    assert_eq!(reader.remaining(), 14);
+    assert_eq!(relative_reader.remaining(), 14);
+}
