@@ -115,13 +115,13 @@ impl<'a> BitReader<'a> {
             bytes: self.bytes,
             position: self.position,
             relative_offset: self.position,
-            length: self.length - self.position,
+            length: self.length - self.position(),
         }
     }
 
     /// Returns a copy of current BitReader, with the difference that its position() returns
     /// positions relative to the position of the original BitReader at the construction time, and
-    /// will not allow reading more than len bits. After construction, both readers are otherwise 
+    /// will not allow reading more than len bits. After construction, both readers are otherwise
     // completely independent, except of course for sharing the same source data.
     ///
     /// ```
@@ -153,7 +153,7 @@ impl<'a> BitReader<'a> {
             bytes: self.bytes,
             position: self.position,
             relative_offset: self.position,
-            length: min(self.length - self.position, len),
+            length: min(self.length - self.position(), len),
         }
     }
 
