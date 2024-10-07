@@ -339,3 +339,15 @@ fn relative_reader_remaining() {
     assert_eq!(reader.remaining(), 14);
     assert_eq!(relative_reader.remaining(), 14);
 }
+
+#[test]
+fn make_relate_reader_twice() {
+    let bytes = &[0b0011_0100, 0b0011_0100];
+    let mut reader = BitReader::new(bytes);
+    reader.skip(9).unwrap();
+    let relate_reader_a = reader.relative_reader();
+    let relate_reader_b = relate_reader_a.relative_reader();
+    assert_eq!(relate_reader_a.position(), 0);
+    assert_eq!(relate_reader_b.position(), 0);
+    assert_eq!(relate_reader_a.position, relate_reader_b.position);
+}
