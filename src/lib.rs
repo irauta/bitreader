@@ -354,7 +354,12 @@ impl<'a> BitReader<'a> {
 
         for i in start_position..end_position {
             let byte_index = (i / 8) as usize;
-            let byte = self.bytes[byte_index];
+            // This will never fail, but prevents Rust from generating panic code
+            let byte = if let Some(byte) = self.bytes.get(byte_index).copied() {
+                byte
+            } else {
+                break;
+            };
             let shift = 7 - (i % 8);
             let bit = (byte >> shift) as u64 & 1;
             value = (value << 1) | bit;
