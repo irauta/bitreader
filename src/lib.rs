@@ -161,6 +161,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 8 bits into a u8.
+    #[inline]
     pub fn read_u8(&mut self, bit_count: u8) -> Result<u8> {
         let value = self.read_value(bit_count, 8)?;
         Ok((value & 0xff) as u8)
@@ -192,6 +193,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 16 bits into a u16.
+    #[inline]
     pub fn read_u16(&mut self, bit_count: u8) -> Result<u16> {
         let value = self.read_value(bit_count, 16)?;
         Ok((value & 0xffff) as u16)
@@ -204,6 +206,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 32 bits into a u32.
+    #[inline]
     pub fn read_u32(&mut self, bit_count: u8) -> Result<u32> {
         let value = self.read_value(bit_count, 32)?;
         Ok((value & 0xffffffff) as u32)
@@ -216,6 +219,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 64 bits into a u64.
+    #[inline]
     pub fn read_u64(&mut self, bit_count: u8) -> Result<u64> {
         let value = self.read_value(bit_count, 64)?;
         Ok(value)
@@ -229,6 +233,7 @@ impl<'a> BitReader<'a> {
 
     /// Read at most 8 bits into a i8.
     /// Assumes the bits are stored in two's complement format.
+    #[inline]
     pub fn read_i8(&mut self, bit_count: u8) -> Result<i8> {
         let value = self.read_signed_value(bit_count, 8)?;
         Ok((value & 0xff) as i8)
@@ -236,6 +241,7 @@ impl<'a> BitReader<'a> {
 
     /// Read at most 16 bits into a i16.
     /// Assumes the bits are stored in two's complement format.
+    #[inline]
     pub fn read_i16(&mut self, bit_count: u8) -> Result<i16> {
         let value = self.read_signed_value(bit_count, 16)?;
         Ok((value & 0xffff) as i16)
@@ -243,6 +249,7 @@ impl<'a> BitReader<'a> {
 
     /// Read at most 32 bits into a i32.
     /// Assumes the bits are stored in two's complement format.
+    #[inline]
     pub fn read_i32(&mut self, bit_count: u8) -> Result<i32> {
         let value = self.read_signed_value(bit_count, 32)?;
         Ok((value & 0xffffffff) as i32)
@@ -250,6 +257,7 @@ impl<'a> BitReader<'a> {
 
     /// Read at most 64 bits into a i64.
     /// Assumes the bits are stored in two's complement format.
+    #[inline]
     pub fn read_i64(&mut self, bit_count: u8) -> Result<i64> {
         let value = self.read_signed_value(bit_count, 64)?;
         Ok(value)
@@ -257,6 +265,7 @@ impl<'a> BitReader<'a> {
 
     /// Read a single bit as a boolean value.
     /// Interprets 1 as true and 0 as false.
+    #[inline]
     pub fn read_bool(&mut self) -> Result<bool> {
         match self.read_value(1, 1)? {
             0 => Ok(false),
@@ -324,6 +333,7 @@ impl<'a> BitReader<'a> {
         self.skip(bits_to_skip)
     }
 
+    #[inline]
     fn read_signed_value(&mut self, bit_count: u8, maximum_count: u8) -> Result<i64> {
         if bit_count == 0 {
             return Ok(0);
@@ -340,17 +350,28 @@ impl<'a> BitReader<'a> {
         Ok(high_bits << bit_count | unsigned as i64)
     }
 
+    #[cold]
+    fn too_many_bits_for_type_error(&self, bit_count: u8, maximum_count: u8) -> Result<u64> {
+        Err(BitReaderError::TooManyBitsForType {
+            position: self.position,
+            requested: bit_count,
+            allowed: maximum_count,
+        })
+    }
+
+    #[inline]
+    // Inlining allows the size checks to be eliminated for constant values
     fn read_value(&mut self, bit_count: u8, maximum_count: u8) -> Result<u64> {
         if bit_count == 0 {
             return Ok(0);
         }
         if bit_count > maximum_count {
-            return Err(BitReaderError::TooManyBitsForType {
-                position: self.position,
-                requested: bit_count,
-                allowed: maximum_count,
-            });
+            return self.too_many_bits_for_type_error(bit_count, maximum_count);
         }
+        self.read_bits(bit_count)
+    }
+
+    fn read_bits(&mut self, bit_count: u8) -> Result<u64> {
         let start_position = self.position;
         let end_position = self.position + bit_count as u64;
         if end_position > (self.relative_offset + self.length) {
