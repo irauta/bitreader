@@ -79,6 +79,7 @@ pub struct BitReader<'a> {
 impl<'a> BitReader<'a> {
     /// Construct a new BitReader from a byte slice. The returned reader lives at most as long as
     /// the slice given to is valid.
+    #[inline]
     pub fn new(bytes: &'a [u8]) -> BitReader<'a> {
         BitReader {
             bytes: bytes,
@@ -110,6 +111,7 @@ impl<'a> BitReader<'a> {
     /// assert_eq!(original.position(), 12);
     /// assert_eq!(relative.position(), 8);
     /// ```
+    #[inline]
     pub fn relative_reader(&self) -> BitReader<'a> {
         BitReader {
             bytes: self.bytes,
@@ -148,6 +150,7 @@ impl<'a> BitReader<'a> {
     ///    requested: 8
     /// });
     /// ```
+    #[inline]
     pub fn relative_reader_atmost(&self, len: u64) -> BitReader<'a> {
         BitReader {
             bytes: self.bytes,
@@ -164,6 +167,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 8 bits into a u8, but without moving the cursor forward.
+    #[inline]
     pub fn peek_u8(&self, bit_count: u8) -> Result<u8> {
         self.relative_reader().read_u8(bit_count)
     }
@@ -194,6 +198,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 16 bits into a u16, but without moving the cursor forward.
+    #[inline]
     pub fn peek_u16(&self, bit_count: u8) -> Result<u16> {
         self.relative_reader().read_u16(bit_count)
     }
@@ -205,6 +210,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 32 bits into a u32, but without moving the cursor forward.
+    #[inline]
     pub fn peek_u32(&self, bit_count: u8) -> Result<u32> {
         self.relative_reader().read_u32(bit_count)
     }
@@ -216,6 +222,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read at most 64 bits into a u64, but without moving the cursor forward.
+    #[inline]
     pub fn peek_u64(&self, bit_count: u8) -> Result<u64> {
         self.relative_reader().read_u64(bit_count)
     }
@@ -259,6 +266,7 @@ impl<'a> BitReader<'a> {
 
     /// Read a single bit as a boolean value, but without moving the cursor forward.
     /// Interprets 1 as true and 0 as false.
+    #[inline]
     pub fn peek_bool(&self) -> Result<bool> {
         self.relative_reader().read_bool()
     }
@@ -278,11 +286,13 @@ impl<'a> BitReader<'a> {
     }
 
     /// Returns the position of the cursor, or how many bits have been read so far.
+    #[inline]
     pub fn position(&self) -> u64 {
         self.position - self.relative_offset
     }
 
     /// Returns the number of bits not yet read from the underlying slice.
+    #[inline]
     pub fn remaining(&self) -> u64 {
         self.length - self.position()
     }
@@ -297,6 +307,7 @@ impl<'a> BitReader<'a> {
     /// This function can be used to validate the data is being read properly, for example by
     /// adding invocations wrapped into `debug_assert!()` to places where it is known the data
     /// should be n-byte aligned.
+    #[inline]
     pub fn is_aligned(&self, alignment_bytes: u32) -> bool {
         self.position % (alignment_bytes as u64 * 8) == 0
     }
